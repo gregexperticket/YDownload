@@ -1,58 +1,81 @@
 # YDownload
 
-Utilidad personal de consola, en C# / .NET, que descarga la pista de audio de un vídeo de
-YouTube y la convierte a MP3.
+Herramienta de consola en C# / .NET que descarga la pista de audio de un vídeo de YouTube y
+la guarda como MP3 con etiquetas ID3: título, canal, año, URL de origen y carátula.
 
-Es un proyecto de andar por casa: un único fichero, sin tests y con la URL escrita a mano en
-el código. Está publicado tal cual, más como archivo de algo que me hice en su día que como
-herramienta lista para usar por terceros.
+El repositorio tiene dos proyectos:
 
-## Cómo funciona
-
-1. Resuelve los metadatos del vídeo con [YoutubeExplode](https://github.com/Tyrrrz/YoutubeExplode).
-2. Del manifiesto de streams se queda con el de **sólo audio** de mayor bitrate.
-3. Lo descarga a `c:/YDownloads/` con el título del vídeo saneado como nombre de fichero.
-4. Lo transcodifica a MP3 con [NAudio](https://github.com/naudio/NAudio) sobre Media Foundation.
-5. Borra el fichero intermedio.
+- `src/YDownload.Core`: la lógica (resolver el vídeo, descargar, convertir, etiquetar), sin
+  nada de consola, para poder reutilizarla desde otras interfaces.
+- `src/YDownload.Cli`: la aplicación de consola. Sólo interpreta los argumentos y pinta el
+  progreso.
 
 ## Requisitos
 
-- **Windows.** La conversión usa Media Foundation, que no existe fuera de Windows.
-  En ediciones N/KN hace falta el Media Feature Pack.
-- **SDK de .NET 6.** Fijado en `global.json` con `rollForward: latestMinor`, así que un SDK
-  más moderno por sí solo no vale.
+- [SDK de .NET 10](https://dotnet.microsoft.com/download).
+- [ffmpeg](https://ffmpeg.org/), en el `PATH`, junto al ejecutable, o indicado con `--ffmpeg`.
+  En Windows: `winget install Gyan.FFmpeg`.
+
+Funciona en Windows, Linux y macOS.
 
 ## Uso
 
-No hay argumentos de línea de comandos: la URL y la carpeta de salida están codificadas al
-principio de `Program.cs`.
-
 ```
-git clone https://github.com/gregexperticket/YDownload.git
-cd YDownload
-# editar videoUrl y outputPath en Program.cs
-dotnet run
+dotnet run --project src/YDownload.Cli -- <url o id de vídeo> [opciones]
 ```
 
-## Limitaciones conocidas
+| Opción | Descripción |
+|---|---|
+| `-o, --out <carpeta>` | Carpeta de salida. Por defecto, la actual. Se crea si no existe. |
+| `-b, --bitrate <kbps>` | Bitrate del MP3, entre 32 y 320. Por defecto, 192. |
+| `--ffmpeg <ruta>` | Ejecutable de ffmpeg, si no está en el `PATH`. |
+| `-h, --help` | Muestra la ayuda. |
 
-Sin maquillaje, para que quede constancia:
+Ejemplo:
 
-- **La carpeta de salida no se crea sola.** Si `c:/YDownloads/` no existe, la descarga falla
-  con `DirectoryNotFoundException`.
-- **La conversión es frágil.** Se coge el audio de mayor bitrate sin filtrar contenedor, y en
-  YouTube ése suele ser WebM/Opus, que Media Foundation no sabe decodificar. Funciona con
-  M4A/AAC y revienta con el resto.
-- **Deja basura si falla.** El borrado del fichero intermedio no está en un `finally`, así que
-  un error en la conversión deja el `.webm`/`.m4a` huérfano en disco.
-- **El MP3 sale sin metadatos ID3**: ni título, ni artista, ni carátula.
-- **Sin progreso ni cancelación.** Durante la descarga y la conversión la consola parece
-  colgada.
-- **Errores opacos**: se captura `Exception` y sólo se imprime el mensaje, sin tipo ni traza.
-- **Dependencia frágil por naturaleza.** YoutubeExplode se apoya en el funcionamiento interno
-  de la web de YouTube y se rompe cada pocas semanas. La versión fijada aquí (6.5.3, de marzo
-  de 2025) es antigua y lo más probable es que ya no resuelva los streams.
-- **.NET 6 está fuera de soporte** desde noviembre de 2024.
+```
+dotnet run --project src/YDownload.Cli -- https://www.youtube.com/watch?v=XXXXXXXXXXX -o "%USERPROFILE%\Music" -b 256
+```
+
+El fichero se llama como el título del vídeo, saneado para que sea un nombre válido en
+Windows. Si ya existe uno con ese nombre se añade un sufijo `(2)`, `(3)`… en lugar de
+sobrescribirlo.
+
+Para tener un ejecutable suelto:
+
+```
+dotnet publish src/YDownload.Cli -c Release -o publish
+```
+
+## Cómo funciona
+
+1. Se resuelven los metadatos del vídeo y el manifiesto de streams con
+   [YoutubeExplode](https://github.com/Tyrrrz/YoutubeExplode).
+2. Se descarga a un fichero temporal la pista de sólo audio de mayor bitrate (normalmente
+   WebM/Opus).
+3. ffmpeg la transcodifica a MP3 con `libmp3lame` a bitrate constante.
+4. Se escriben las etiquetas ID3v2.3 con [TagLibSharp](https://github.com/mono/taglib-sharp),
+   con la miniatura del vídeo como carátula.
+5. Se borra el temporal, también si algo ha fallado por el camino.
+
+`Ctrl+C` cancela en cualquier punto y limpia lo que hubiera a medias.
+
+## Pruebas
+
+```
+dotnet test
+```
+
+Las pruebas que necesitan ffmpeg se omiten si no está instalado.
+
+## Limitaciones
+
+- YoutubeExplode se apoya en el funcionamiento interno de la web de YouTube, que cambia con
+  frecuencia. Cuando eso ocurre la resolución de streams falla hasta que sale una versión nueva
+  del paquete; lo habitual es que baste con actualizarlo.
+- Sólo vídeos sueltos; no hay soporte para listas de reproducción.
+- La carátula es la miniatura del vídeo. Si no se puede descargar, el MP3 se guarda igualmente
+  sin ella y se avisa.
 
 ## Aviso
 

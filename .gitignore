@@ -26,8 +26,10 @@ artifacts/
 packages/
 !packages/build/
 
-## Resultados de la app
-YDownloads/
+## Salidas
+*.mp3
+publish/
+TestResults/
 
 ## Sistema operativo
 Thumbs.db

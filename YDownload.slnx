@@ -1,0 +1,9 @@
+<Solution>
+  <Folder Name="/src/">
+    <Project Path="src/YDownload.Cli/YDownload.Cli.csproj" />
+    <Project Path="src/YDownload.Core/YDownload.Core.csproj" />
+  </Folder>
+  <Folder Name="/tests/">
+    <Project Path="tests/YDownload.Core.Tests/YDownload.Core.Tests.csproj" />
+  </Folder>
+</Solution>
