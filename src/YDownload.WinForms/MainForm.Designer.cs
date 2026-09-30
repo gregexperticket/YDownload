@@ -20,6 +20,9 @@ partial class MainForm
         layout = new TableLayoutPanel();
         urlLabel = new Label();
         urlTextBox = new TextBox();
+        modePanel = new FlowLayoutPanel();
+        videoRadioButton = new RadioButton();
+        audioRadioButton = new RadioButton();
         folderLabel = new Label();
         folderTextBox = new TextBox();
         browseButton = new Button();
@@ -34,6 +37,7 @@ partial class MainForm
         statusLabel = new Label();
         openFolderButton = new Button();
         layout.SuspendLayout();
+        modePanel.SuspendLayout();
         bitratePanel.SuspendLayout();
         buttonsPanel.SuspendLayout();
         SuspendLayout();
@@ -46,27 +50,29 @@ partial class MainForm
         layout.ColumnStyles.Add(new ColumnStyle());
         layout.Controls.Add(urlLabel, 0, 0);
         layout.Controls.Add(urlTextBox, 1, 0);
-        layout.Controls.Add(folderLabel, 0, 1);
-        layout.Controls.Add(folderTextBox, 1, 1);
-        layout.Controls.Add(browseButton, 2, 1);
-        layout.Controls.Add(bitrateLabel, 0, 2);
-        layout.Controls.Add(bitratePanel, 1, 2);
-        layout.Controls.Add(buttonsPanel, 0, 3);
-        layout.Controls.Add(progressBar, 0, 4);
-        layout.Controls.Add(statusLabel, 0, 5);
-        layout.Controls.Add(openFolderButton, 2, 5);
+        layout.Controls.Add(modePanel, 1, 1);
+        layout.Controls.Add(folderLabel, 0, 2);
+        layout.Controls.Add(folderTextBox, 1, 2);
+        layout.Controls.Add(browseButton, 2, 2);
+        layout.Controls.Add(bitrateLabel, 0, 3);
+        layout.Controls.Add(bitratePanel, 1, 3);
+        layout.Controls.Add(buttonsPanel, 0, 4);
+        layout.Controls.Add(progressBar, 0, 5);
+        layout.Controls.Add(statusLabel, 0, 6);
+        layout.Controls.Add(openFolderButton, 2, 6);
         layout.Dock = DockStyle.Fill;
         layout.Location = new Point(0, 0);
         layout.Name = "layout";
         layout.Padding = new Padding(12, 12, 12, 8);
-        layout.RowCount = 6;
+        layout.RowCount = 7;
         layout.RowStyles.Add(new RowStyle());
         layout.RowStyles.Add(new RowStyle());
         layout.RowStyles.Add(new RowStyle());
         layout.RowStyles.Add(new RowStyle());
         layout.RowStyles.Add(new RowStyle());
         layout.RowStyles.Add(new RowStyle());
-        layout.Size = new Size(584, 221);
+        layout.RowStyles.Add(new RowStyle());
+        layout.Size = new Size(584, 246);
         layout.TabIndex = 0;
         //
         // urlLabel
@@ -84,6 +90,34 @@ partial class MainForm
         urlTextBox.PlaceholderText = "URL o id del vídeo de YouTube";
         urlTextBox.TabIndex = 0;
         //
+        // modePanel
+        //
+        modePanel.AutoSize = true;
+        layout.SetColumnSpan(modePanel, 2);
+        modePanel.Controls.Add(videoRadioButton);
+        modePanel.Controls.Add(audioRadioButton);
+        modePanel.Margin = new Padding(0);
+        modePanel.Name = "modePanel";
+        modePanel.TabIndex = 1;
+        modePanel.WrapContents = false;
+        //
+        // videoRadioButton
+        //
+        videoRadioButton.AutoSize = true;
+        videoRadioButton.Margin = new Padding(3, 3, 16, 3);
+        videoRadioButton.Name = "videoRadioButton";
+        videoRadioButton.TabIndex = 0;
+        videoRadioButton.Text = "Descargar vídeo completo";
+        videoRadioButton.CheckedChanged += modeRadioButton_CheckedChanged;
+        //
+        // audioRadioButton
+        //
+        audioRadioButton.AutoSize = true;
+        audioRadioButton.Name = "audioRadioButton";
+        audioRadioButton.TabIndex = 1;
+        audioRadioButton.Text = "Descargar solo audio";
+        audioRadioButton.CheckedChanged += modeRadioButton_CheckedChanged;
+        //
         // folderLabel
         //
         folderLabel.Anchor = AnchorStyles.Left;
@@ -95,7 +129,7 @@ partial class MainForm
         //
         folderTextBox.Anchor = AnchorStyles.Left | AnchorStyles.Right;
         folderTextBox.Name = "folderTextBox";
-        folderTextBox.TabIndex = 1;
+        folderTextBox.TabIndex = 2;
         //
         // browseButton
         //
@@ -103,7 +137,7 @@ partial class MainForm
         browseButton.AutoSize = true;
         browseButton.Name = "browseButton";
         browseButton.Padding = new Padding(6, 0, 6, 0);
-        browseButton.TabIndex = 2;
+        browseButton.TabIndex = 3;
         browseButton.Text = "Examinar…";
         browseButton.Click += browseButton_Click;
         //
@@ -121,6 +155,7 @@ partial class MainForm
         bitratePanel.Controls.Add(kbpsLabel);
         bitratePanel.Margin = new Padding(0);
         bitratePanel.Name = "bitratePanel";
+        bitratePanel.TabIndex = 4;
         bitratePanel.WrapContents = false;
         //
         // bitrateComboBox
@@ -128,7 +163,7 @@ partial class MainForm
         bitrateComboBox.DropDownStyle = ComboBoxStyle.DropDownList;
         bitrateComboBox.Name = "bitrateComboBox";
         bitrateComboBox.Size = new Size(80, 23);
-        bitrateComboBox.TabIndex = 3;
+        bitrateComboBox.TabIndex = 0;
         //
         // kbpsLabel
         //
@@ -145,13 +180,14 @@ partial class MainForm
         buttonsPanel.Controls.Add(cancelButton);
         buttonsPanel.Margin = new Padding(0, 8, 0, 0);
         buttonsPanel.Name = "buttonsPanel";
+        buttonsPanel.TabIndex = 5;
         buttonsPanel.WrapContents = false;
         //
         // downloadButton
         //
         downloadButton.Name = "downloadButton";
         downloadButton.Size = new Size(110, 30);
-        downloadButton.TabIndex = 4;
+        downloadButton.TabIndex = 0;
         downloadButton.Text = "Descargar";
         downloadButton.Click += downloadButton_Click;
         //
@@ -160,7 +196,7 @@ partial class MainForm
         cancelButton.Enabled = false;
         cancelButton.Name = "cancelButton";
         cancelButton.Size = new Size(110, 30);
-        cancelButton.TabIndex = 5;
+        cancelButton.TabIndex = 1;
         cancelButton.Text = "Cancelar";
         cancelButton.Click += cancelButton_Click;
         //
@@ -197,7 +233,7 @@ partial class MainForm
         AcceptButton = downloadButton;
         AutoScaleDimensions = new SizeF(7F, 15F);
         AutoScaleMode = AutoScaleMode.Font;
-        ClientSize = new Size(584, 221);
+        ClientSize = new Size(584, 246);
         Controls.Add(layout);
         FormBorderStyle = FormBorderStyle.FixedSingle;
         MaximizeBox = false;
@@ -206,6 +242,8 @@ partial class MainForm
         Text = "YDownload";
         layout.ResumeLayout(false);
         layout.PerformLayout();
+        modePanel.ResumeLayout(false);
+        modePanel.PerformLayout();
         bitratePanel.ResumeLayout(false);
         bitratePanel.PerformLayout();
         buttonsPanel.ResumeLayout(false);
@@ -217,6 +255,9 @@ partial class MainForm
     private TableLayoutPanel layout;
     private Label urlLabel;
     private TextBox urlTextBox;
+    private FlowLayoutPanel modePanel;
+    private RadioButton videoRadioButton;
+    private RadioButton audioRadioButton;
     private Label folderLabel;
     private TextBox folderTextBox;
     private Button browseButton;

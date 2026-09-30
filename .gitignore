@@ -28,6 +28,7 @@ packages/
 
 ## Salidas
 *.mp3
+*.mp4
 publish/
 TestResults/
 

@@ -5,6 +5,7 @@ public enum DownloadStage
     Resolving,
     Downloading,
     Converting,
+    Merging,
     Tagging,
 }
 

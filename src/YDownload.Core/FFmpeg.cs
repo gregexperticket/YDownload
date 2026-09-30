@@ -22,13 +22,46 @@ public sealed class FFmpeg
         return File.Exists(local) ? local : name;
     }
 
-    public async Task ConvertToMp3Async(
+    public Task ConvertToMp3Async(
         string inputPath,
         string outputPath,
         int bitrateKbps,
         TimeSpan? duration,
         IProgress<double>? progress = null,
+        CancellationToken ct = default) =>
+        RunAsync(
+        [
+            "-i", inputPath,
+            "-vn", "-map_metadata", "-1",
+            "-codec:a", "libmp3lame", "-b:a", $"{bitrateKbps}k",
+            outputPath,
+        ], duration, progress, ct);
+
+    public Task MergeToMp4Async(
+        string videoPath,
+        string audioPath,
+        string outputPath,
+        IReadOnlyDictionary<string, string> metadata,
+        TimeSpan? duration,
+        IProgress<double>? progress = null,
         CancellationToken ct = default)
+    {
+        List<string> args =
+        [
+            "-i", videoPath,
+            "-i", audioPath,
+            "-map", "0:v:0", "-map", "1:a:0",
+            "-codec", "copy", "-map_metadata", "-1",
+        ];
+
+        foreach (var (key, value) in metadata)
+            args.AddRange(["-metadata", $"{key}={value}"]);
+
+        args.Add(outputPath);
+        return RunAsync(args, duration, progress, ct);
+    }
+
+    private async Task RunAsync(IEnumerable<string> args, TimeSpan? duration, IProgress<double>? progress, CancellationToken ct)
     {
         var startInfo = new ProcessStartInfo(_executable)
         {
@@ -38,18 +71,8 @@ public sealed class FFmpeg
             RedirectStandardError = true,
         };
 
-        foreach (var arg in new[]
-                 {
-                     "-y", "-hide_banner", "-nostats", "-loglevel", "error",
-                     "-progress", "pipe:1",
-                     "-i", inputPath,
-                     "-vn", "-map_metadata", "-1",
-                     "-codec:a", "libmp3lame", "-b:a", $"{bitrateKbps}k",
-                     outputPath,
-                 })
-        {
+        foreach (var arg in new[] { "-y", "-hide_banner", "-nostats", "-loglevel", "error", "-progress", "pipe:1" }.Concat(args))
             startInfo.ArgumentList.Add(arg);
-        }
 
         using var process = new Process { StartInfo = startInfo };
 

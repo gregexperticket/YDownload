@@ -1,4 +1,5 @@
 using System.Text.Json;
+using System.Text.Json.Serialization;
 
 namespace YDownload.WinForms;
 
@@ -8,6 +9,9 @@ public sealed class UserSettings
         Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData), "YDownload", "settings.json");
 
     private static readonly JsonSerializerOptions JsonOptions = new() { WriteIndented = true };
+
+    [JsonConverter(typeof(JsonStringEnumConverter<DownloadMode>))]
+    public DownloadMode Mode { get; set; } = DownloadMode.Audio;
 
     public string OutputDirectory { get; set; } = Environment.GetFolderPath(Environment.SpecialFolder.MyMusic);
 

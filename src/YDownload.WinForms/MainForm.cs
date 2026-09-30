@@ -7,7 +7,7 @@ public partial class MainForm : Form
 {
     private static readonly int[] Bitrates = [128, 192, 256, 320];
 
-    private readonly AudioDownloader _downloader = new();
+    private readonly Downloader _downloader = new();
     private readonly UserSettings _settings = UserSettings.Load();
 
     private CancellationTokenSource? _cts;
@@ -26,13 +26,34 @@ public partial class MainForm : Form
             bitrateComboBox.SelectedItem = 192;
 
         folderTextBox.Text = _settings.OutputDirectory;
+
+        if (_settings.Mode == DownloadMode.Video)
+            videoRadioButton.Checked = true;
+        else
+            audioRadioButton.Checked = true;
+    }
+
+    private DownloadMode SelectedMode => videoRadioButton.Checked ? DownloadMode.Video : DownloadMode.Audio;
+
+    private void modeRadioButton_CheckedChanged(object sender, EventArgs e)
+    {
+        if (!((RadioButton)sender).Checked)
+            return;
+
+        bitrateComboBox.Enabled = SelectedMode == DownloadMode.Audio;
+
+        if (_settings.Mode != SelectedMode)
+        {
+            _settings.Mode = SelectedMode;
+            _settings.Save();
+        }
     }
 
     private void browseButton_Click(object sender, EventArgs e)
     {
         using var dialog = new FolderBrowserDialog
         {
-            Description = "Carpeta donde guardar los MP3",
+            Description = "Carpeta donde guardar las descargas",
             UseDescriptionForTitle = true,
             SelectedPath = folderTextBox.Text,
         };
@@ -52,6 +73,7 @@ public partial class MainForm : Form
 
         var options = new DownloadOptions
         {
+            Mode = SelectedMode,
             OutputDirectory = folderTextBox.Text.Trim(),
             BitrateKbps = (int)bitrateComboBox.SelectedItem!,
         };
@@ -72,9 +94,9 @@ public partial class MainForm : Form
             _lastFile = result.FilePath;
             progressBar.Style = ProgressBarStyle.Continuous;
             progressBar.Value = 100;
-            ShowStatus(result.CoverEmbedded
-                ? $"Guardado: {Path.GetFileName(result.FilePath)}"
-                : $"Guardado sin carátula: {Path.GetFileName(result.FilePath)}");
+            ShowStatus(options.Mode == DownloadMode.Audio && !result.CoverEmbedded
+                ? $"Guardado sin carátula: {Path.GetFileName(result.FilePath)}"
+                : $"Guardado: {Path.GetFileName(result.FilePath)}");
         }
         catch (OperationCanceledException)
         {
@@ -125,6 +147,7 @@ public partial class MainForm : Form
             DownloadStage.Resolving => "Resolviendo vídeo",
             DownloadStage.Downloading => "Descargando",
             DownloadStage.Converting => "Convirtiendo a MP3",
+            DownloadStage.Merging => "Uniendo vídeo y audio",
             DownloadStage.Tagging => "Escribiendo etiquetas",
             _ => progress.Stage.ToString(),
         };
@@ -141,9 +164,10 @@ public partial class MainForm : Form
     private void SetBusy(bool busy)
     {
         urlTextBox.Enabled = !busy;
+        modePanel.Enabled = !busy;
         folderTextBox.Enabled = !busy;
         browseButton.Enabled = !busy;
-        bitrateComboBox.Enabled = !busy;
+        bitrateComboBox.Enabled = !busy && SelectedMode == DownloadMode.Audio;
         downloadButton.Enabled = !busy;
         cancelButton.Enabled = busy;
         openFolderButton.Enabled = !busy && _lastFile is not null;

@@ -51,6 +51,7 @@ internal sealed class ConsoleProgress : IProgress<DownloadProgress>
         DownloadStage.Resolving => "Resolviendo",
         DownloadStage.Downloading => "Descargando",
         DownloadStage.Converting => "Convirtiendo",
+        DownloadStage.Merging => "Uniendo",
         DownloadStage.Tagging => "Etiquetando",
         _ => stage.ToString(),
     };
