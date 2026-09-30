@@ -1,41 +1,45 @@
 # YDownload
 
-Herramienta en C# / .NET que descarga la pista de audio de un vídeo de YouTube y la guarda
-como MP3 con etiquetas ID3: título, canal, año, URL de origen y carátula. Tiene una interfaz
-gráfica y otra de consola, las dos sobre la misma librería.
+Aplicación de escritorio para Windows, en C# / .NET, que descarga la pista de audio de un
+vídeo de YouTube y la guarda como MP3 con etiquetas ID3: título, canal, año, URL de origen y
+carátula. El mismo ejecutable funciona también sin interfaz si se le pasan argumentos.
 
-El repositorio tiene estos proyectos:
+El repositorio tiene dos proyectos:
 
 - `src/YDownload.Core`: la lógica (resolver el vídeo, descargar, convertir, etiquetar), sin
   dependencias de interfaz.
-- `src/YDownload.WinForms`: la aplicación de escritorio para Windows.
-- `src/YDownload.Cli`: la aplicación de consola.
+- `src/YDownload.WinForms`: la aplicación, que genera `YDownload.exe`.
 
 ## Requisitos
 
+- Windows.
 - [SDK de .NET 10](https://dotnet.microsoft.com/download).
-- [ffmpeg](https://ffmpeg.org/), en el `PATH` o junto al ejecutable (la consola admite además
-  `--ffmpeg`). En Windows: `winget install Gyan.FFmpeg`.
+- [ffmpeg](https://ffmpeg.org/), en el `PATH` o junto al ejecutable: `winget install Gyan.FFmpeg`.
 
-La librería y la consola funcionan en Windows, Linux y macOS; la interfaz gráfica sólo en
-Windows.
-
-## Interfaz gráfica
+## Compilar
 
 ```
-dotnet run --project src/YDownload.WinForms
+dotnet publish src/YDownload.WinForms -c Release -o publish
 ```
 
-Se pega la URL, se elige carpeta y bitrate, y `Descargar`. La barra muestra la fase en curso
-(descarga y conversión con porcentaje) y `Cancelar` interrumpe en cualquier punto sin dejar
-restos. Al terminar, `Abrir carpeta` selecciona el MP3 en el Explorador.
+Deja `YDownload.exe` en `publish/`. Para probar sin publicar, `dotnet run --project src/YDownload.WinForms`.
+
+## Con interfaz
+
+Sin argumentos se abre la ventana. Se pega la URL, se elige carpeta y bitrate, y `Descargar`.
+La barra muestra la fase en curso (descarga y conversión con porcentaje) y `Cancelar`
+interrumpe en cualquier punto sin dejar restos. Al terminar, `Abrir carpeta` selecciona el MP3
+en el Explorador.
 
 La carpeta y el bitrate se recuerdan entre sesiones en `%APPDATA%\YDownload\settings.json`.
 
-## Consola
+## Sin interfaz
+
+Con argumentos no se abre ninguna ventana: descarga, escribe el progreso en la consola y
+termina con un código de salida.
 
 ```
-dotnet run --project src/YDownload.Cli -- <url o id de vídeo> [opciones]
+YDownload.exe <url o id de vídeo> [opciones]
 ```
 
 | Opción | Descripción |
@@ -45,19 +49,21 @@ dotnet run --project src/YDownload.Cli -- <url o id de vídeo> [opciones]
 | `--ffmpeg <ruta>` | Ejecutable de ffmpeg, si no está en el `PATH`. |
 | `-h, --help` | Muestra la ayuda. |
 
-Ejemplo:
+Códigos de salida: `0` si todo ha ido bien, `1` si la descarga falla o se cancela con
+`Ctrl+C`, `2` si los argumentos no son válidos.
+
+Al ser un ejecutable de ventana, Windows no hace que la consola interactiva espere a que
+termine: el prompt vuelve enseguida y la salida aparece después. En ficheros `.bat`/`.cmd` sí
+se espera. Para esperar también desde el prompt:
 
 ```
-dotnet run --project src/YDownload.Cli -- https://www.youtube.com/watch?v=XXXXXXXXXXX -o "%USERPROFILE%\Music" -b 256
+start /wait YDownload.exe https://www.youtube.com/watch?v=XXXXXXXXXXX -o "%USERPROFILE%\Music" -b 256
 ```
 
-`Ctrl+C` cancela y limpia lo que hubiera a medias.
-
-Para tener ejecutables sueltos:
+y en PowerShell:
 
 ```
-dotnet publish src/YDownload.WinForms -c Release -o publish/winforms
-dotnet publish src/YDownload.Cli -c Release -o publish/cli
+Start-Process YDownload.exe -ArgumentList 'https://www.youtube.com/watch?v=XXXXXXXXXXX' -NoNewWindow -Wait
 ```
 
 ## Cómo funciona

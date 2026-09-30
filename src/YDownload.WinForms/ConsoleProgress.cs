@@ -1,4 +1,4 @@
-namespace YDownload.Cli;
+namespace YDownload.WinForms;
 
 internal sealed class ConsoleProgress : IProgress<DownloadProgress>
 {

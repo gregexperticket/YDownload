@@ -1,6 +1,5 @@
 <Solution>
   <Folder Name="/src/">
-    <Project Path="src/YDownload.Cli/YDownload.Cli.csproj" />
     <Project Path="src/YDownload.Core/YDownload.Core.csproj" />
     <Project Path="src/YDownload.WinForms/YDownload.WinForms.csproj" />
   </Folder>
