@@ -1,24 +1,38 @@
 # YDownload
 
-Herramienta de consola en C# / .NET que descarga la pista de audio de un vídeo de YouTube y
-la guarda como MP3 con etiquetas ID3: título, canal, año, URL de origen y carátula.
+Herramienta en C# / .NET que descarga la pista de audio de un vídeo de YouTube y la guarda
+como MP3 con etiquetas ID3: título, canal, año, URL de origen y carátula. Tiene una interfaz
+gráfica y otra de consola, las dos sobre la misma librería.
 
-El repositorio tiene dos proyectos:
+El repositorio tiene estos proyectos:
 
 - `src/YDownload.Core`: la lógica (resolver el vídeo, descargar, convertir, etiquetar), sin
-  nada de consola, para poder reutilizarla desde otras interfaces.
-- `src/YDownload.Cli`: la aplicación de consola. Sólo interpreta los argumentos y pinta el
-  progreso.
+  dependencias de interfaz.
+- `src/YDownload.WinForms`: la aplicación de escritorio para Windows.
+- `src/YDownload.Cli`: la aplicación de consola.
 
 ## Requisitos
 
 - [SDK de .NET 10](https://dotnet.microsoft.com/download).
-- [ffmpeg](https://ffmpeg.org/), en el `PATH`, junto al ejecutable, o indicado con `--ffmpeg`.
-  En Windows: `winget install Gyan.FFmpeg`.
+- [ffmpeg](https://ffmpeg.org/), en el `PATH` o junto al ejecutable (la consola admite además
+  `--ffmpeg`). En Windows: `winget install Gyan.FFmpeg`.
 
-Funciona en Windows, Linux y macOS.
+La librería y la consola funcionan en Windows, Linux y macOS; la interfaz gráfica sólo en
+Windows.
 
-## Uso
+## Interfaz gráfica
+
+```
+dotnet run --project src/YDownload.WinForms
+```
+
+Se pega la URL, se elige carpeta y bitrate, y `Descargar`. La barra muestra la fase en curso
+(descarga y conversión con porcentaje) y `Cancelar` interrumpe en cualquier punto sin dejar
+restos. Al terminar, `Abrir carpeta` selecciona el MP3 en el Explorador.
+
+La carpeta y el bitrate se recuerdan entre sesiones en `%APPDATA%\YDownload\settings.json`.
+
+## Consola
 
 ```
 dotnet run --project src/YDownload.Cli -- <url o id de vídeo> [opciones]
@@ -37,14 +51,13 @@ Ejemplo:
 dotnet run --project src/YDownload.Cli -- https://www.youtube.com/watch?v=XXXXXXXXXXX -o "%USERPROFILE%\Music" -b 256
 ```
 
-El fichero se llama como el título del vídeo, saneado para que sea un nombre válido en
-Windows. Si ya existe uno con ese nombre se añade un sufijo `(2)`, `(3)`… en lugar de
-sobrescribirlo.
+`Ctrl+C` cancela y limpia lo que hubiera a medias.
 
-Para tener un ejecutable suelto:
+Para tener ejecutables sueltos:
 
 ```
-dotnet publish src/YDownload.Cli -c Release -o publish
+dotnet publish src/YDownload.WinForms -c Release -o publish/winforms
+dotnet publish src/YDownload.Cli -c Release -o publish/cli
 ```
 
 ## Cómo funciona
@@ -58,7 +71,9 @@ dotnet publish src/YDownload.Cli -c Release -o publish
    con la miniatura del vídeo como carátula.
 5. Se borra el temporal, también si algo ha fallado por el camino.
 
-`Ctrl+C` cancela en cualquier punto y limpia lo que hubiera a medias.
+El fichero se llama como el título del vídeo, saneado para que sea un nombre válido en
+Windows. Si ya existe uno con ese nombre se añade un sufijo `(2)`, `(3)`… en lugar de
+sobrescribirlo.
 
 ## Pruebas
 

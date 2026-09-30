@@ -2,6 +2,7 @@
   <Folder Name="/src/">
     <Project Path="src/YDownload.Cli/YDownload.Cli.csproj" />
     <Project Path="src/YDownload.Core/YDownload.Core.csproj" />
+    <Project Path="src/YDownload.WinForms/YDownload.WinForms.csproj" />
   </Folder>
   <Folder Name="/tests/">
     <Project Path="tests/YDownload.Core.Tests/YDownload.Core.Tests.csproj" />

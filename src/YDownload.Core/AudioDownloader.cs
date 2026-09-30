@@ -26,8 +26,8 @@ public sealed class AudioDownloader
 
         progress?.Report(new(DownloadStage.Resolving, 0));
 
-        var video = await _youtube.Videos.GetAsync(videoId, ct);
-        var manifest = await _youtube.Videos.Streams.GetManifestAsync(videoId, ct);
+        var video = await _youtube.Videos.GetAsync(videoId, ct).ConfigureAwait(false);
+        var manifest = await _youtube.Videos.Streams.GetManifestAsync(videoId, ct).ConfigureAwait(false);
         var stream = manifest.GetAudioOnlyStreams().TryGetWithHighestBitrate()
             ?? throw new InvalidOperationException("El vídeo no tiene ninguna pista de sólo audio.");
 
@@ -38,11 +38,11 @@ public sealed class AudioDownloader
         try
         {
             await _youtube.Videos.Streams.DownloadAsync(
-                stream, sourcePath, StageProgress.For(progress, DownloadStage.Downloading), ct);
+                stream, sourcePath, StageProgress.For(progress, DownloadStage.Downloading), ct).ConfigureAwait(false);
 
             await new FFmpeg(options.FFmpegPath).ConvertToMp3Async(
                 sourcePath, mp3Path, options.BitrateKbps, video.Duration,
-                StageProgress.For(progress, DownloadStage.Converting), ct);
+                StageProgress.For(progress, DownloadStage.Converting), ct).ConfigureAwait(false);
         }
         catch
         {
@@ -56,7 +56,7 @@ public sealed class AudioDownloader
 
         progress?.Report(new(DownloadStage.Tagging, 0));
 
-        var cover = await TryGetCoverAsync(video, ct);
+        var cover = await TryGetCoverAsync(video, ct).ConfigureAwait(false);
         Mp3Tags.Write(mp3Path, new Mp3TagInfo(video.Title, video.Author.ChannelTitle, (uint)video.UploadDate.Year, video.Url)
         {
             Cover = cover,
@@ -78,11 +78,11 @@ public sealed class AudioDownloader
 
         try
         {
-            using var response = await _http.GetAsync(thumbnail.Url, ct);
+            using var response = await _http.GetAsync(thumbnail.Url, ct).ConfigureAwait(false);
             if (!response.IsSuccessStatusCode)
                 return null;
 
-            var data = await response.Content.ReadAsByteArrayAsync(ct);
+            var data = await response.Content.ReadAsByteArrayAsync(ct).ConfigureAwait(false);
             var mimeType = response.Content.Headers.ContentType?.MediaType ?? "image/jpeg";
             return new CoverImage(data, mimeType);
         }

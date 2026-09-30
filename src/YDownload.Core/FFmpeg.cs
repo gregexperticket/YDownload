@@ -66,7 +66,7 @@ public sealed class FFmpeg
 
         try
         {
-            while (await process.StandardOutput.ReadLineAsync(ct) is { } line)
+            while (await process.StandardOutput.ReadLineAsync(ct).ConfigureAwait(false) is { } line)
             {
                 if (duration is { } total
                     && line.StartsWith(TimePrefix, StringComparison.Ordinal)
@@ -76,7 +76,7 @@ public sealed class FFmpeg
                 }
             }
 
-            await process.WaitForExitAsync(ct);
+            await process.WaitForExitAsync(ct).ConfigureAwait(false);
         }
         catch (OperationCanceledException)
         {
@@ -86,7 +86,7 @@ public sealed class FFmpeg
 
         if (process.ExitCode != 0)
         {
-            var error = (await stderr).Trim();
+            var error = (await stderr.ConfigureAwait(false)).Trim();
             throw new FFmpegException(error.Length > 0
                 ? $"ffmpeg terminó con código {process.ExitCode}: {error}"
                 : $"ffmpeg terminó con código {process.ExitCode}.");
