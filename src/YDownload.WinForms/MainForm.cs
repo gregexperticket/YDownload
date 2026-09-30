@@ -17,6 +17,9 @@ public partial class MainForm : Form
     {
         InitializeComponent();
 
+        using (var icon = typeof(MainForm).Assembly.GetManifestResourceStream("YDownload.app.ico")!)
+            Icon = new Icon(icon);
+
         bitrateComboBox.Items.AddRange(Bitrates.Cast<object>().ToArray());
         bitrateComboBox.SelectedItem = _settings.BitrateKbps;
         if (bitrateComboBox.SelectedIndex < 0)
